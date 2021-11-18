@@ -58,6 +58,7 @@ namespace Uno.Wasm.Bootstrap
 		private List<string> _referencedAssemblies = new List<string>();
 		private Dictionary<string, string>? _bclAssemblies;
 		private readonly List<string> _dependencies = new List<string>();
+		private readonly List<string> _deferredDependencies = new List<string>();
 		private string[]? _additionalStyles;
 		private List<AssemblyDefinition>? _resourceSearchList;
 		private RuntimeExecutionMode _runtimeExecutionMode;
@@ -225,6 +226,7 @@ namespace Uno.Wasm.Bootstrap
 				TryDeployDebuggerProxy();
 				ExtractAdditionalJS();
 				ExtractAdditionalCSS();
+				ExtractDeferredJS();
 				CleanupDist();
 				PrepareFinalDist();
 				GenerateConfig();
@@ -1488,6 +1490,25 @@ namespace Uno.Wasm.Bootstrap
 			}
 		}
 
+		private void ExtractDeferredJS()
+		{
+			BuildResourceSearchList();
+
+			var q = EnumerateResources("js", "WasmDeferred");
+
+			foreach (var (name, source, resource) in q)
+			{
+				if (source.Name.Name != GetType().Assembly.GetName().Name)
+				{
+					_deferredDependencies.Add(name);
+				}
+
+				CopyResourceToOutput(name, resource);
+
+				Log.LogMessage($"Deferred dependency JS {name}");
+			}
+		}
+
 		private void ExtractAdditionalCSS()
 		{
 			BuildResourceSearchList();
@@ -1594,6 +1615,7 @@ namespace Uno.Wasm.Bootstrap
 			{
 				var baseLookup = _shellMode == ShellMode.Node ? "" : $"{WebAppBasePath}{_remoteBasePackagePath}/";
 				var dependencies = string.Join(", ", _dependencies.Select(dep => BuildDependencyPath(dep, baseLookup)));
+				var deferredDependencies = string.Join(", ", _deferredDependencies.Select(dep => BuildDependencyPath(dep, baseLookup)));
 				var entryPoint = DiscoverEntryPoint();
 
 				var config = new StringBuilder();
@@ -1612,6 +1634,7 @@ namespace Uno.Wasm.Bootstrap
 				config.AppendLine($"config.uno_remote_managedpath = \"{ Path.GetFileName(_managedPath) }\";");
 				config.AppendLine($"config.uno_app_base = \"{WebAppBasePath}{_remoteBasePackagePath}\";");
 				config.AppendLine($"config.uno_dependencies = [{dependencies}];");
+				config.AppendLine($"config.uno_deferredDependencies = [{deferredDependencies}];");
 				config.AppendLine($"config.uno_main = \"[{entryPoint.DeclaringType.Module.Assembly.Name.Name}] {entryPoint.DeclaringType.FullName}:{entryPoint.Name}\";");
 				config.AppendLine($"config.assemblyFileExtension = \"{AssembliesFileExtension}\";");
 				config.AppendLine($"config.mono_wasm_runtime = \"{monoWasmFileName}\";");

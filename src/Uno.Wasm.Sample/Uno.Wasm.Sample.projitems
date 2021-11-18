@@ -16,6 +16,7 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Content\LockScreenLogo.scale-200.png" />
     <None Include="$(MSBuildThisFileDirectory)sample.common.props" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)WasmDeferred\ej2.js" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)libman.json">

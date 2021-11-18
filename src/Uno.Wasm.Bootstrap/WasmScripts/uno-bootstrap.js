@@ -434,6 +434,17 @@ var App = {
         }
     },
 
+    loadDeferredDependencies() {
+        if (config.uno_deferredDependencies && config.uno_deferredDependencies.length !== 0) {
+            for (var i = 0; i < config.uno_deferredDependencies.length; i++) {
+                let script = document.createElement('script');
+                script.src = config.uno_deferredDependencies[i];
+                document.body.append(script);
+                if (config.enable_debugging) console.log(`Loaded deferred dependency (${script.src})`);
+            }
+        }
+    },
+
     initializeRequire() {
 
         // Uno.Wasm.Bootstrap is using "requirejs" by default, which is an AMD implementation
@@ -450,6 +461,7 @@ var App = {
                 if (config.enable_debugging) console.log(`Loaded dependency (${dependency}) - remains ${pending} other(s).`);
                 if (pending === 0) {
                     App.mainInit();
+                    this.loadDeferredDependencies();
                 }
             };
 
@@ -482,6 +494,7 @@ var App = {
         }
         else {
             App.mainInit();
+            this.loadDeferredDependencies();
         }
     },
 
