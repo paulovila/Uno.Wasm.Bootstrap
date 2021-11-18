@@ -1255,8 +1255,8 @@ class Driver {
 				var fileName = Path.GetFileName(nativeCompile);
 				var fileNameWithoutExt = Path.GetFileNameWithoutExtension(nativeCompile);
 
-				ninja.WriteLine($"build $builddir/{fileName}: cpifdiff {EscapePath(source_file)}");
-				ninja.WriteLine($"build $builddir/{fileNameWithoutExt}.o: emcc {EscapePath(nativeCompile)} | $emsdk_env {driver_deps}");
+				ninja.WriteLine($"build $builddir/{fileName}: cpifdiff {EscapePath(nativeCompile)}");
+				ninja.WriteLine($"build $builddir/{fileNameWithoutExt}.o: emcc {EscapePath(nativeCompile)}");
 				ninja.WriteLine($"  flags = {driver_cflags} -DDRIVER_GEN=1 -I{runtime_dir}/include/mono-2.0");
 			}
 
